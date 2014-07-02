@@ -43,7 +43,10 @@ namespace Ef4Dummies
         {
             using (var context = new Ef.Context())
             {
-                var results = context.Orders
+                // querying only
+                context.Configuration.AutoDetectChangesEnabled = false;
+                // also does not track query
+                var results = context.Orders.AsNoTracking()
                                      .Where(order => order.EmployeeID >= 1 && order.ShipVia >= 1)
                                      .OrderBy(order => order.OrderDate)
                                      .Skip(5)
@@ -57,6 +60,9 @@ namespace Ef4Dummies
         {
             using (var context = new Linq2Sql.ContextDataContext())
             {
+                // does not track query
+                context.ObjectTrackingEnabled = false;
+
                 var results = CompiledQuery(context).ToArray();
                 return results.Length;
             }

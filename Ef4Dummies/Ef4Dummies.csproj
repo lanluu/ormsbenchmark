@@ -72,6 +72,7 @@
   <ItemGroup>
     <Compile Include="Ef\Category.cs" />
     <Compile Include="Ef\Context.cs" />
+    <Compile Include="Ef\Context.Views.cs" />
     <Compile Include="Ef\Customer.cs" />
     <Compile Include="Ef\CustomerDemographic.cs" />
     <Compile Include="Ef\Employee.cs" />

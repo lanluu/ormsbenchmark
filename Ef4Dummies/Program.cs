@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 
 namespace Ef4Dummies
 {
@@ -9,6 +11,9 @@ namespace Ef4Dummies
     {
         static void Main(string[] args)
         {
+            // disables migration check
+            Database.SetInitializer<Ef.Context>(null);
+
             Benchmark(() => FetchWithConditionsViaEf(), 1000, "Entity Framework 6 - Fetching with conditions");
             Benchmark(() => FetchWithConditionsViaPrecompiledQuery(), 1000, "Linq2Sql Compiled Query - Fetching with conditions");
 
@@ -33,7 +38,7 @@ namespace Ef4Dummies
             }
 
             Console.WriteLine("Total ellapsed Time in Milliseconds : {0}", watch.ElapsedMilliseconds);
-            Console.WriteLine("Warming: {0} - Fastes : {1} - Slowest: {2} - Average: {3} in Milliseconds", records.First(), records.Min(), records.Max(), records.Average());
+            Console.WriteLine("Warming: {0} - Fastes : {1} - Slowest: {2} - AVERAGE: {3} in Milliseconds", records.First(), records.Min(), records.Max(), records.Average());
             Console.WriteLine("-------------------------");
 
             watch.Stop();
@@ -45,6 +50,9 @@ namespace Ef4Dummies
             {
                 // querying only
                 context.Configuration.AutoDetectChangesEnabled = false;
+                context.Configuration.ValidateOnSaveEnabled = false;
+                context.Configuration.LazyLoadingEnabled = false;
+                //context.Database.Log = Console.WriteLine;
                 // also does not track query
                 var results = context.Orders.AsNoTracking()
                                      .Where(order => order.EmployeeID >= 1 && order.ShipVia >= 1)
@@ -62,7 +70,7 @@ namespace Ef4Dummies
             {
                 // does not track query
                 context.ObjectTrackingEnabled = false;
-
+                //context.Log = new DebugTextWriter();
                 var results = CompiledQuery(context).ToArray();
                 return results.Length;
             }
@@ -76,6 +84,41 @@ namespace Ef4Dummies
                                   .Skip(5)
                                   .Take(100)
             );
+
+        class DebugTextWriter : System.IO.TextWriter
+        {
+            private readonly string _custom;
+
+            public DebugTextWriter(string custom = null)
+            {
+                _custom = custom;
+                TryPrintCustomText();
+            }
+
+            public override void Write(char[] buffer, int index, int count)
+            {
+                Console.Write(new String(buffer, index, count));
+            }
+
+            public override void Write(string value)
+            {
+                Console.Write(value);
+            }
+
+            public override Encoding Encoding
+            {
+                get { return Encoding.Default; }
+            }
+
+            private void TryPrintCustomText()
+            {
+                if (!string.IsNullOrWhiteSpace(_custom))
+                {
+                    Console.WriteLine("");
+                    Console.WriteLine(_custom);
+                }
+            }
+        }
 
     }
 }
